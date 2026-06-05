@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>SINU Syndicate - منصة توقعات كأس العالم 2026</title><!-- استبدل السطر القديم بهذا السطر المحدث والمستقر جداً -->
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <title>SINU Syndicate - منصة توقعات كأس العالم 2026</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: white; padding: 20px; direction: rtl; }
@@ -42,12 +42,12 @@
     <script>
         // 1. عناوين العقود الذكية على شبكة Base
         const contractAddress = "0x03bf8EA6170e6A275014200980e20eA20205273F"; // عقد التوقعات
-        const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; // ⚠️ ضع هنا عنوان عقد عملتك (SINU ERC-20 Token)
+        const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; // عقد عملة SINU
 
-        // 2. الـ ABIs لتطبيقات الـ Web3 للتعامل مع العملة وعقد التوقعات
-        const predictionAbi =   [
-            {"inputs":[{"internalType":"address","name":"_sinuToken","type":"address"},{"internalType":"uint256","name":"_entryFee","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"matchId","type":"uint256"},{"indexed":false,"internalType":"string","name":"matchName","type":"string"}],"name":"MatchCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"matchId","type":"uint256"},{"indexed":false,"internalType":"uint8","name":"result","type":"uint8"},{"indexed":false,"internalType":"uint256","name":"burnedAmount","type":"uint256"}],"name":"MatchResolved","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"matchId","type":"uint256"},{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint8","name":"prediction","type":"uint8"}],"name":"PredictionPlaced","type":"event"},{"inputs":[],"name":"burnPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"_matchName","type":"string"}],"name":"createMatch","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"entryFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"address","name":"","type":"address"}],"name":"hasPredicted","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"matchCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"matches","outputs":[{"internalType":"string","name":"matchName","type":"string"},{"internalType":"uint256","name":"totalPool","type":"uint256"},{"internalType":"bool","name":"isResolved","type":"bool"},{"internalType":"uint8","name":"poolResult","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_matchId","type":"uint256"},{"internalType":"uint8","name":"_prediction","type":"uint8"}],"name":"placePrediction","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_matchId","type":"uint256"},{"internalType":"uint8","name":"_finalResult","type":"uint8"}],"name":"resolveMatch","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_newFee","type":"uint256"}],"name":"setEntryFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"sinuToken","outputs":[{"internalType":"contract IERC20","name":"","type":"address"}],"stateMutability":"view","type":"function"}
-            ];
+        // 2. الـ ABIs لتطبيقات الـ Web3
+        const predictionAbi = [
+            {"inputs":[{"internalType":"address","name":"_sinuToken","type":"address"},{"internalType":"uint256","name":"_entryFee","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"matchId","type":"uint256"},{"indexed":false,"internalType":"string","name":"matchName","type":"string"}],"name":"MatchCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"matchId","type":"uint256"},{"indexed":false,"internalType":"uint8","name":"result","type":"uint8"},{"indexed":false,"internalType":"uint256","name":"burnedAmount","type":"uint256"}],"name":"MatchResolved","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"matchId","type":"uint256"},{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint8","name":"prediction","type":"uint8"}],"name":"PredictionPlaced","type":"event"},{"inputs":[],"name":"burnPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"_matchName","type":"string"}],"name":"createMatch","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"entryFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"address","name":"","type":"address"}],"name":"hasPredicted","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"matchCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_matchId","type":"uint256"}],"name":"matches","outputs":[{"typename":"string","name":"matchName","type":"string"},{"typename":"uint256","name":"totalPool","type":"uint256"},{"typename":"bool","name":"isResolved","type":"bool"},{"typename":"uint8","name":"poolResult","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_matchId","type":"uint256"},{"internalType":"uint8","name":"_prediction","type":"uint8"}],"name":"placePrediction","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_matchId","type":"uint256"},{"internalType":"uint8","name":"_finalResult","type":"uint8"}],"name":"resolveMatch","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_newFee","type":"uint256"}],"name":"setEntryFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"sinuToken","outputs":[{"internalType":"contract IERC20","name":"","type":"address"}],"stateMutability":"view","type":"function"}
+        ];
 
         const erc20Abi = [
             "function allowance(address owner, address spender) public view returns (uint256)",
@@ -55,147 +55,108 @@
             "function decimals() public view returns (uint8)"
         ];
 
-        // جدول مباريات الجولة الأولى - كأس العالم 2026
-const matches = [
-    // --- اليوم الأول: الافتتاح ---
-    { id: 0, name: "المكسيك 🇲🇽 ضد جنوب أفريقيا 🇿🇦 (مباراة الافتتاح 1)", time: "2026-06-11T19:00:00" },
-    
-    // --- اليوم الثاني ---
-    { id: 1, name: "كندا 🇨🇦 ضد البوسنة والهرسك 🇧🇦 (مباراة الافتتاح 2)", time: "2026-06-12T16:00:00" },
-    { id: 2, name: "الولايات المتحدة 🇺🇸 ضد المغرب 🇲🇦 (مباراة الافتتاح 3)", time: "2026-06-12T21:00:00" },
-    { id: 3, name: "الأرجنتين 🇦🇷 ضد أستراليا 🇦🇺", time: "2026-06-12T23:30:00" },
-    
-    // --- اليوم الثالث ---
-    { id: 4, name: "إسبانيا 🇪🇸 ضد نيجيريا 🇳🇬", time: "2026-06-13T13:00:00" },
-    { id: 5, name: "ألمانيا 🇩🇪 ضد كوريا الجنوبية 🇰🇷", time: "2026-06-13T16:00:00" },
-    { id: 6, name: "إنجلترا 🏴󠁧󠁢󠁥󠁮󠁧󠁿 ضد الإكوادور 🇪🇨", time: "2026-06-13T19:00:00" },
-    { id: 7, name: "فرنسا 🇫🇷 ضد كولومبيا 🇨🇴", time: "2026-06-13T22:00:00" },
-    
-    // --- اليوم الرابع ---
-    { id: 8, name: "البرازيل 🇧🇷 ضد تونس 🇹🇳", time: "2026-06-14T14:00:00" },
-    { id: 9, name: "إيطاليا 🇮🇹 ضد اليابان 🇯🇵", time: "2026-06-14T17:00:00" },
-    { id: 10, name: "البرتغال 🇵🇹 ضد جامايكا 🇯🇲", time: "2026-06-14T20:00:00" },
-    { id: 11, name: "هولندا 🇳🇱 ضد غانا 🇬🇭", time: "2026-06-14T23:00:00" },
-    
-    // --- اليوم الخامس ---
-    { id: 12, name: "بلجيكا 🇧🇪 ضد باراغواي 🇵🇾", time: "2026-06-15T15:00:00" },
-    { id: 13, name: "أوروغواي 🇺🇾 ضد الجزائر 🇩🇿", time: "2026-06-15T18:00:00" },
-    { id: 14, name: "كرواتيا 🇭🇷 ضد مصر 🇪🇬", time: "2026-06-15T21:00:00" },
-    { id: 15, name: "المغرب 🇲🇦 ضد البرازيل 🇧🇷", time: "2026-06-15T23:45:00" },
-        // --- الجولة الثانية ---
-    { id: 16, name: "المكسيك 🇲🇽 ضد الأرجنتين 🇦🇷", time: "2026-06-17T18:00:00" },
-    { id: 17, name: "جنوب أفريقيا 🇿🇦 ضد أستراليا 🇦🇺", time: "2026-06-17T21:00:00" },
-    { id: 18, name: "كندا 🇨🇦 ضد إسبانيا 🇪🇸", time: "2026-06-18T15:00:00" },
-    { id: 19, name: "البوسنة والهرسك 🇧🇦 ضد نيجيريا 🇳🇬", time: "2026-06-18T18:00:00" },
-    { id: 20, name: "الولايات المتحدة 🇺🇸 ضد ألمانيا 🇩🇪", time: "2026-06-18T21:00:00" },
-    { id: 21, name: "المغرب 🇲🇦 ضد كوريا الجنوبية 🇰🇷", time: "2026-06-19T14:00:00" },
-    { id: 22, name: "إنجلترا 🏴󠁧󠁢󠁥󠁮󠁧󠁿 ضد فرنسا 🇫🇷", time: "2026-06-19T17:00:00" },
-    { id: 23, name: "الإكوادور 🇪🇨 ضد كولومبيا 🇨🇴", time: "2026-06-19T20:00:00" },
-    { id: 24, name: "البرازيل 🇧🇷 ضد إيطاليا 🇮🇹", time: "2026-06-20T15:00:00" },
-    { id: 25, name: "تونس 🇹🇳 ضد اليابان 🇯🇵", time: "2026-06-20T18:00:00" },
-    { id: 26, name: "البرتغال 🇵🇹 ضد هولندا 🇳🇱", time: "2026-06-20T21:00:00" },
-    { id: 27, name: "جامايكا 🇯🇲 ضد غانا 🇬🇭", time: "2026-06-21T16:00:00" },
-    { id: 28, name: "بلجيكا 🇧🇪 ضد أوروغواي 🇺🇾", time: "2026-06-21T19:00:00" },
-    { id: 29, name: "باراغواي 🇵🇾 ضد الجزائر 🇩🇿", time: "2026-06-21T22:00:00" },
-    { id: 30, name: "كرواتيا 🇭🇷 ضد نيجيريا 🇳🇬", time: "2026-06-22T18:00:00" },
-    { id: 31, name: "مصر 🇪🇬 ضد إسبانيا 🇪🇸", time: "2026-06-22T21:00:00" },
-
-    // --- الجولة الثالثة والحاسمة ---
-    { id: 32, name: "المكسيك 🇲🇽 ضد أستراليا 🇦🇺", time: "2026-06-24T16:00:00" },
-    { id: 33, name: "جنوب أفريقيا 🇿🇦 ضد الأرجنتين 🇦🇷", time: "2026-06-24T16:00:00" },
-    { id: 34, name: "كندا 🇨🇦 ضد نيجيريا 🇳🇬", time: "2026-06-24T20:00:00" },
-    { id: 35, name: "البوسنة والهرسك 🇧🇦 ضد إسبانيا 🇪🇸", time: "2026-06-24T20:00:00" },
-    { id: 36, name: "الولايات المتحدة 🇺🇸 ضد كوريا الجنوبية 🇰🇷", time: "2026-06-25T17:00:00" },
-    { id: 37, name: "المغرب 🇲🇦 ضد ألمانيا 🇩🇪", time: "2026-06-25T17:00:00" },
-    { id: 38, name: "إنجلترا 🏴󠁧󠁢󠁥󠁮󠁧󠁿 ضد كولومبيا 🇨🇴", time: "2026-06-25T21:00:00" },
-    { id: 39, name: "الإكوادور 🇪🇨 ضد فرنسا 🇫🇷", time: "2026-06-25T21:00:00" },
-    { id: 40, name: "البرازيل 🇧🇷 ضد اليابان 🇯🇵", time: "2026-06-26T16:00:00" },
-    { id: 41, name: "تونس 🇹🇳 ضد إيطاليا 🇮🇹", time: "2026-06-26T16:00:00" },
-    { id: 42, name: "البرتغال 🇵🇹 ضد غانا 🇬🇭", time: "2026-06-26T20:00:00" },
-    { id: 43, name: "جامايكا 🇯🇲 ضد هولندا 🇳🇱", time: "2026-06-26T20:00:00" },
-    { id: 44, name: "بلجيكا 🇧🇪 ضد الجزائر 🇩🇿", time: "2026-06-27T18:00:00" },
-    { id: 45, name: "باراغواي 🇵🇾 ضد أوروغواي 🇺🇾", time: "2026-06-27T18:00:00" },
-    { id: 46, name: "كرواتيا 🇭🇷 ضد إسبانيا 🇪🇸", time: "2026-06-27T22:00:00" },
-    { id: 47, name: "مصر 🇪🇬 ضد نيجيريا 🇳🇬", time: "2026-06-27T22:00:00" },
-    // ==========================================
-    // --- دور الـ 32 (مباريات خروج المغلوب) ---
-    // ==========================================
-    { id: 48, name: "متصدر المجموعة A 🆚 ثالث المجموعة C / D / E", time: "2026-06-29T18:00:00" },
-    { id: 49, name: "وصيف المجموعة A 🆚 وصيف المجموعة B", time: "2026-06-29T22:00:00" },
-    { id: 50, name: "متصدر المجموعة B 🆚 ثالث المجموعة A / F / G", time: "2026-06-30T17:00:00" },
-    { id: 51, name: "متصدر المجموعة C 🆚 ثالث المجموعة F / G / H", time: "2026-06-30T21:00:00" },
-    { id: 52, name: "وصيف المجموعة C 🆚 وصيف المجموعة D", time: "2026-07-01T18:00:00" },
-    { id: 53, name: "متصدر المجموعة D 🆚 ثالث المجموعة B / I / J", time: "2026-07-01T22:00:00" },
-    { id: 54, name: "متصدر المجموعة E 🆚 وصيف المجموعة F", time: "2026-07-02T17:00:00" },
-    { id: 55, name: "متصدر المجموعة F 🆚 ثالث المجموعة C / E / I", time: "2026-07-02T21:00:00" },
-    { id: 56, name: "وصيف المجموعة E 🆚 وصيف المجموعة G", time: "2026-07-03T18:00:00" },
-    { id: 57, name: "متصدر المجموعة G 🆚 ثالث المجموعة A / B / H", time: "2026-07-03T22:00:00" },
-    { id: 58, name: "متصدر المجموعة H 🆚 وصيف المجموعة I", time: "2026-07-04T16:00:00" },
-    { id: 59, name: "متصدر المجموعة I 🆚 ثالث المجموعة D / G / K", time: "2026-07-04T20:00:00" },
-    { id: 60, name: "وصيف المجموعة H 🆚 وصيف المجموعة J", time: "2026-07-05T17:00:00" },
-    { id: 61, name: "متصدر المجموعة J 🆚 ثالث المجموعة E / H / L", time: "2026-07-05T21:00:00" },
-    { id: 62, name: "متصدر المجموعة K 🆚 وصيف المجموعة L", time: "2026-07-06T18:00:00" },
-    { id: 63, name: "متصدر المجموعة L 🆚 ثالث المجموعة F / I / K", time: "2026-07-06T22:00:00" },
-
-    // ==========================================
-    // --- دور الـ 16 (ثمن النهائي) ---
-    // ==========================================
-    { id: 64, name: "الفائز من مباراة (48) 🆚 الفائز من مباراة (49)", time: "2026-07-08T18:00:00" },
-    { id: 65, name: "الفائز من مباراة (50) 🆚 الفائز من مباراة (51)", time: "2026-07-08T22:00:00" },
-    { id: 66, name: "الفائز من مباراة (52) 🆚 الفائز من مباراة (53)", time: "2026-07-09T17:00:00" },
-    { id: 67, name: "الفائز من مباراة (54) 🆚 الفائز من مباراة (55)", time: "2026-07-09T21:00:00" },
-    { id: 68, name: "الفائز من مباراة (56) 🆚 الفائز من مباراة (57)", time: "2026-07-10T18:00:00" },
-    { id: 69, name: "الفائز من مباراة (58) 🆚 الفائز من مباراة (59)", time: "2026-07-10T22:00:00" },
-    { id: 70, name: "الفائز من مباراة (60) 🆚 الفائز من مباراة (61)", time: "2026-07-11T17:00:00" },
-    { id: 71, name: "الفائز من مباراة (62) 🆚 الفائز من مباراة (63)", time: "2026-07-11T21:00:00" },
-
-    // ==========================================
-    // --- دور الـ 8 (ربع النهائي) ---
-    // ==========================================
-    { id: 72, name: "الفائز ثمن النهائي (64) 🆚 الفائز ثمن النهائي (65)", time: "2026-07-14T19:00:00" },
-    { id: 73, name: "الفائز ثمن النهائي (66) 🆚 الفائز ثمن النهائي (67)", time: "2026-07-14T23:00:00" },
-    { id: 74, name: "الفائز ثمن النهائي (68) 🆚 الفائز ثمن النهائي (69)", time: "2026-07-15T19:00:00" },
-    { id: 75, name: "الفائز ثمن النهائي (70) 🆚 الفائز ثمن النهائي (71)", time: "2026-07-15T23:00:00" },
-
-    // ==========================================
-    // --- دور الـ 4 (نصف النهائي) ---
-    // ==========================================
-    { id: 76, name: "الفائز ربع النهائي (72) 🆚 الفائز ربع النهائي (73) [نصف النهائي 1]", time: "2026-07-18T22:00:00" },
-    { id: 77, name: "الفائز ربع النهائي (74) 🆚 الفائز ربع النهائي (75) [نصف النهائي 2]", time: "2026-07-19T22:00:00" },
-
-    // ==========================================
-    // --- مباراة تحديد المركز الثالث ---
-    // ==========================================
-    { id: 78, name: "الخاسر من نصف النهائي (76) 🆚 الخاسر من نصف النهائي (77) 🥉", time: "2026-07-25T20:00:00" },
-
-    // ==========================================
-    // --- 🔥 المباراة النهائية الكبرى 🔥 ---
-    // ==========================================
-    { id: 79, name: "الفائز من نصف النهائي (76) 🆚 الفائز من نصف النهائي (77) 🏆", time: "2026-07-26T21:00:00" }
-
-];
-
+        // جدول مباريات كأس العالم 2026
+        const matches = [
+            { id: 0, name: "المكسيك 🇲🇽 ضد جنوب أفريقيا 🇿🇦 (مباراة الافتتاح 1)", time: "2026-06-11T19:00:00" },
+            { id: 1, name: "كندا 🇨🇦 ضد البوسنة والهرسك 🇧🇦 (مباراة الافتتاح 2)", time: "2026-06-12T16:00:00" },
+            { id: 2, name: "الولايات المتحدة 🇺🇸 ضد المغرب 🇲🇦 (مباراة الافتتاح 3)", time: "2026-06-12T21:00:00" },
+            { id: 3, name: "الأرجنتين 🇦🇷 ضد أستراليا 🇦🇺", time: "2026-06-12T23:30:00" },
+            { id: 4, name: "إسبانيا 🇪🇸 ضد نيجيريا 🇳🇬", time: "2026-06-13T13:00:00" },
+            { id: 5, name: "ألمانيا 🇩🇪 ضد كوريا الجنوبية 🇰🇷", time: "2026-06-13T16:00:00" },
+            { id: 6, name: "إنجلترا 🏴󠁧󠁢󠁥󠁮󠁧󠁿 ضد الإكوادور 🇪🇨", time: "2026-06-13T19:00:00" },
+            { id: 7, name: "فرنسا 🇫🇷 ضد كولومبيا 🇨🇴", time: "2026-06-13T22:00:00" },
+            { id: 8, name: "البرازيل 🇧🇷 ضد تونس 🇹🇳", time: "2026-06-14T14:00:00" },
+            { id: 9, name: "إيطاليا 🇮🇹 ضد اليابان 🇯🇵", time: "2026-06-14T17:00:00" },
+            { id: 10, name: "البرتغال 🇵🇹 ضد جامايكا 🇯🇲", time: "2026-06-14T20:00:00" },
+            { id: 11, name: "هولندا 🇳🇱 ضد غانا 🇬🇭", time: "2026-06-14T23:00:00" },
+            { id: 12, name: "بلجيكا 🇧🇪 ضد باراغواي 🇵🇾", time: "2026-06-15T15:00:00" },
+            { id: 13, name: "أوروغواي 🇺🇾 ضد الجزائر 🇩🇿", time: "2026-06-15T18:00:00" },
+            { id: 14, name: "كرواتيا 🇭🇷 ضد مصر 🇪🇬", time: "2026-06-15T21:00:00" },
+            { id: 15, name: "المغرب 🇲🇦 ضد البرازيل 🇧🇷", time: "2026-06-15T23:45:00" },
+            { id: 16, name: "المكسيك 🇲🇽 ضد الأرجنتين 🇦🇷", time: "2026-06-17T18:00:00" },
+            { id: 17, name: "جنوب أفريقيا 🇿🇦 ضد أستراليا 🇦🇺", time: "2026-06-17T21:00:00" },
+            { id: 18, name: "كندا 🇨🇦 ضد إسبانيا 🇪🇸", time: "2026-06-18T15:00:00" },
+            { id: 19, name: "البوسنة والهرسك 🇧🇦 ضد نيجيريا 🇳🇬", time: "2026-06-18T18:00:00" },
+            { id: 20, name: "الولايات المتحدة 🇺🇸 ضد ألمانيا 🇩🇪", time: "2026-06-18T21:00:00" },
+            { id: 21, name: "المغرب 🇲🇦 ضد كوريا الجنوبية 🇰🇷", time: "2026-06-19T14:00:00" },
+            { id: 22, name: "إنجلترا 🏴󠁧󠁢󠁥󠁮󠁧󠁿 ضد فرنسا 🇫🇷", time: "2026-06-19T17:00:00" },
+            { id: 23, name: "الإكوادور 🇪🇨 ضد كولومبيا 🇨🇴", time: "2026-06-19T20:00:00" },
+            { id: 24, name: "البرازيل 🇧🇷 ضد إيطاليا 🇮🇹", time: "2026-06-20T15:00:00" },
+            { id: 25, name: "تونس 🇹🇳 ضد اليابان 🇯🇵", time: "2026-06-20T18:00:00" },
+            { id: 26, name: "البرتغال 🇵🇹 ضد هولندا 🇳🇱", time: "2026-06-20T21:00:00" },
+            { id: 27, name: "جامايكا 🇯🇲 ضد غانا 🇬🇭", time: "2026-06-21T16:00:00" },
+            { id: 28, name: "بلجيكا 🇧🇪 ضد أوروغواي 🇺🇾", time: "2026-06-21T19:00:00" },
+            { id: 29, name: "باراغواي 🇵🇾 ضد الجزائر 🇩🇿", time: "2026-06-21T22:00:00" },
+            { id: 30, name: "كرواتيا 🇭🇷 ضد نيجيريا 🇳🇬", time: "2026-06-22T18:00:00" },
+            { id: 31, name: "مصر 🇪🇬 ضد إسبانيا 🇪🇸", time: "2026-06-22T21:00:00" },
+            { id: 32, name: "المكسيك 🇲🇽 ضد أستراليا 🇦🇺", time: "2026-06-24T16:00:00" },
+            { id: 33, name: "جنوب أفريقيا 🇿🇦 ضد الأرجنتين 🇦🇷", time: "2026-06-24T16:00:00" },
+            { id: 34, name: "كندا 🇨🇦 ضد نيجيريا 🇳🇬", time: "2026-06-24T20:00:00" },
+            { id: 35, name: "البوسنة والهرسك 🇧🇦 ضد إسبانيا 🇪🇸", time: "2026-06-24T20:00:00" },
+            { id: 36, name: "الولايات المتحدة 🇺🇸 ضد كوريا الجنوبية 🇰🇷", time: "2026-06-25T17:00:00" },
+            { id: 37, name: "المغرب 🇲🇦 ضد ألمانيا 🇩🇪", time: "2026-06-25T17:00:00" },
+            { id: 38, name: "إنجلترا 🏴󠁧󠁢󠁥󠁮󠁧󠁿 ضد كولومبيا 🇨🇴", time: "2026-06-25T21:00:00" },
+            { id: 39, name: "الإكوادور 🇪🇨 ضد فرنسا 🇫🇷", time: "2026-06-25T21:00:00" },
+            { id: 40, name: "البرازيل 🇧🇷 ضد اليابان 🇯🇵", time: "2026-06-26T16:00:00" },
+            { id: 41, name: "تونس 🇹🇳 ضد إيطاليا 🇮🇹", time: "2026-06-26T16:00:00" },
+            { id: 42, name: "البرتغال 🇵🇹 ضد غانا 🇬🇭", time: "2026-06-26T20:00:00" },
+            { id: 43, name: "جامايكا 🇯🇲 ضد هولندا 🇳🇱", time: "2026-06-26T20:00:00" },
+            { id: 44, name: "بلجيكا 🇧🇪 ضد الجزائر 🇩🇿", time: "2026-06-27T18:00:00" },
+            { id: 45, name: "باراغواي 🇵🇾 ضد أوروغواي 🇺🇾", time: "2026-06-27T18:00:00" },
+            { id: 46, name: "كرواتيا 🇭🇷 ضد إسبانيا 🇪🇸", time: "2026-06-27T22:00:00" },
+            { id: 47, name: "مصر 🇪🇬 ضد نيجيريا 🇳🇬", time: "2026-06-27T22:00:00" },
+            { id: 48, name: "متصدر المجموعة A 🆚 ثالث المجموعة C / D / E", time: "2026-06-29T18:00:00" },
+            { id: 49, name: "وصيف المجموعة A 🆚 وصيف المجموعة B", time: "2026-06-29T22:00:00" },
+            { id: 50, name: "متصدر المجموعة B 🆚 ثالث المجموعة A / F / G", time: "2026-03-30T17:00:00" },
+            { id: 51, name: "متصدر المجموعة C 🆚 ثالث المجموعة F / G / H", time: "2026-06-30T21:00:00" },
+            { id: 52, name: "وصيف المجموعة C 🆚 وصيف المجموعة D", time: "2026-07-01T18:00:00" },
+            { id: 53, name: "متصدر المجموعة D 🆚 ثالث المجموعة B / I / J", time: "2026-07-01T22:00:00" },
+            { id: 54, name: "متصدر المجموعة E 🆚 وصيف المجموعة F", time: "2026-07-02T17:00:00" },
+            { id: 55, name: "متصدر المجموعة F 🆚 ثالث المجموعة C / E / I", time: "2026-07-02T21:00:00" },
+            { id: 56, name: "وصيف المجموعة E 🆚 وصيف المجموعة G", time: "2026-07-03T18:00:00" },
+            { id: 57, name: "متصدر المجموعة G 🆚 ثالث المجموعة A / B / H", time: "2026-07-03T22:00:00" },
+            { id: 58, name: "متصدر المجموعة H 🆚 وصيف المجموعة I", time: "2026-07-04T16:00:00" },
+            { id: 59, name: "متصدر المجموعة I 🆚 ثالث المجموعة D / G / K", time: "2026-07-04T20:00:00" },
+            { id: 60, name: "وصيف المجموعة H 🆚 وصيف المجموعة J", time: "2026-07-05T17:00:00" },
+            { id: 61, name: "متصدر المجموعة J 🆚 ثالث المجموعة E / H / L", time: "2026-07-05T21:00:00" },
+            { id: 62, name: "متصدر المجموعة K 🆚 وصيف المجموعة L", time: "2026-07-06T18:00:00" },
+            { id: 63, name: "متصدر المجموعة L 🆚 ثالث المجموعة F / I / K", time: "2026-07-06T22:00:00" },
+            { id: 64, name: "الفائز من مباراة (48) 🆚 الفائز من مباراة (49)", time: "2026-07-08T18:00:00" },
+            { id: 65, name: "الفائز من مباراة (50) 🆚 الفائز من مباراة (51)", time: "2026-07-08T22:00:00" },
+            { id: 66, name: "الفائز من مباراة (52) 🆚 الفائز من مباراة (53)", time: "2026-07-09T17:00:00" },
+            { id: 67, name: "الفائز من مباراة (54) 🆚 الفائز من مباراة (55)", time: "2026-07-09T21:00:00" },
+            { id: 68, name: "الفائز من مباراة (56) 🆚 الفائز من مباراة (57)", time: "2026-07-10T18:00:00" },
+            { id: 69, name: "الفائز من مباراة (58) 🆚 الفائز من مباراة (59)", time: "2026-07-10T22:00:00" },
+            { id: 70, name: "الفائز من مباراة (60) 🆚 الفائز من مباراة (61)", time: "2026-07-11T17:00:00" },
+            { id: 71, name: "الفائز من مباراة (62) 🆚 الفائز من مباراة (63)", time: "2026-07-11T21:00:00" },
+            { id: 72, name: "الفائز ثمن النهائي (64) 🆚 الفائز ثمن النهائي (65)", time: "2026-07-14T19:00:00" },
+            { id: 73, name: "الفائز ثمن النهائي (66) 🆚 الفائز ثمن النهائي (67)", time: "2026-07-14T23:00:00" },
+            { id: 74, name: "الفائز ثمن النهائي (68) 🆚 الفائز ثمن النهائي (69)", time: "2026-07-15T19:00:00" },
+            { id: 75, name: "الفائز ثمن النهائي (70) 🆚 الفائز ثمن النهائي (71)", time: "2026-07-15T23:00:00" },
+            { id: 76, name: "الفائز ربع النهائي (72) 🆚 الفائز ربع النهائي (73) [نصف النهائي 1]", time: "2026-07-18T22:00:00" },
+            { id: 77, name: "الفائز ربع النهائي (74) 🆚 الفائز ربع النهائي (75) [نصف النهائي 2]", time: "2026-07-19T22:00:00" },
+            { id: 78, name: "الخاسر من نصف النهائي (76) 🆚 الخاسر من نصف النهائي (77) 🥉", time: "2026-07-25T20:00:00" },
+            { id: 79, name: "الفائز من نصف النهائي (76) 🆚 الفائز من نصف النهائي (77) 🏆", time: "2026-07-26T21:00:00" }
+        ];
 
         let contract;
         let sinuContract;
         let userAddress;
-        let tokenDecimals = 18; // القيمة الافتراضية لأغلب العملات
+        let tokenDecimals = 18;
 
         document.getElementById('connectBtn').onclick = async () => {
             if (!window.ethereum) return alert("يرجى تثبيت MetaMask أولاً!");
             
             try {
+                // تعديل طريقة استدعاء الـ Provider لتناسب نسخة v5 بشكل مستقر
                 const provider = new ethers.providers.Web3Provider(window.ethereum);
-                // طلب الاتصال بالمحفظة
                 await provider.send("eth_requestAccounts", []);
                 const signer = provider.getSigner();
                 userAddress = await signer.getAddress();
                 
-                // إعداد العقود برمجياً
                 contract = new ethers.Contract(contractAddress, predictionAbi, signer);
                 sinuContract = new ethers.Contract(sinuTokenAddress, erc20Abi, signer);
                 
-                // جلب الـ Decimals الخاصة بعملتك لتنسيق الأرقام بدقة
                 try {
                     tokenDecimals = await sinuContract.decimals();
                 } catch(e) {
@@ -205,10 +166,7 @@ const matches = [
                 document.getElementById('status').innerText = `متصل بالمحفظة: ${userAddress.substring(0,6)}...${userAddress.substring(38)}`;
                 document.getElementById('connectBtn').style.display = 'none';
                 
-                // جلب وعرض قيمة رسوم الاشتراك (Entry Fee)
                 displayEntryFee();
-                
-                // تحميل وعرض المباريات للمستخدم
                 loadMatches();
                 
             } catch (error) {
@@ -219,7 +177,6 @@ const matches = [
         async function displayEntryFee() {
             try {
                 const feeBigNum = await contract.entryFee();
-                // تحويل الرقم من صيغة العقد الذكي إلى رقم عشري مفهوم للمستخدم
                 const formattedFee = ethers.utils.formatUnits(feeBigNum, tokenDecimals);
                 document.getElementById('feeAmount').innerText = formattedFee;
                 document.getElementById('feeContainer').style.display = 'block';
@@ -230,13 +187,12 @@ const matches = [
 
         function loadMatches() {
             const container = document.getElementById('matchesContainer');
-            container.innerHTML = ""; // تصفير لتفادي تكرار الواجهة عند إعادة الاتصال
+            container.innerHTML = "";
             
             const now = new Date().getTime();
             
             matches.forEach(match => {
                 const startTime = new Date(match.time).getTime();
-                // قفل التوقعات تلقائياً قبل انطلاق المباراة بـ 30 دقيقة لحماية النزاهة
                 const isLocked = (now + 30 * 60 * 1000) >= startTime;
                 
                 const formattedTime = new Date(match.time).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' });
@@ -255,7 +211,6 @@ const matches = [
                     ${isLocked ? '<p class="locked-text">⚠️ انتهى الوقت المحدد، تم إغلاق التوقعات لهذه المباراة.</p>' : ''}
                 `;
                 
-                // تفعيل الأزرار وربط الأحداث بشكل آمن إذا لم تكن المباراة مغلقة
                 if (!isLocked) {
                     matchCard.querySelectorAll('button').forEach(button => {
                         button.onclick = () => {
@@ -275,33 +230,34 @@ const matches = [
             }
             
             try {
-                // 1. جلب قيمة الرسوم المطلوبة من العقد مباشرة
+                // 1. جلب الرسوم
                 const fee = await contract.entryFee();
                 
-                // 2. التحقق من صلاحية الخصم (Allowance) الحالية لعقد التوقعات
+                // 2. التحقق من الـ Allowance الحالي
                 const allowed = await sinuContract.allowance(userAddress, contractAddress);
                 
-                // 3. إذا كان العقد غير مخول بسحب عملات SINU، نطلب موافقة (Approve) أولاً
+                // 3. إذا كان الـ Allowance أقل من الرسوم، نطلب Approve أولاً
                 if (allowed.lt(fee)) {
-                    alert("خطوة أمان: يرجى تأكيد معاملة الموافقة (Approve) لتسمح للمنصة بخصم عملة SINU من حسابك.");
+                    alert("خطوة أمان: يرجى تأكيد معاملة الموافقة (Approve) لتسمح لعقد التوقعات باستخدام عملات SINU.");
                     const approveTx = await sinuContract.approve(contractAddress, fee);
-                    alert("جاري معالجة الموافقة على الشبكة، انتظر لحظات...");
-                    await approveTx.wait();
-                    alert("✅ تمت الموافقة بنجاح! سيتم الآن إرسال التوقع تلقائياً.");
+                    document.getElementById('status').innerText = "في انتظار تأكيد معاملة الـ Approve...";
+                    await approveTx.wait(); // انتظار تأكيد المعاملة على بلوكشين Base
                 }
                 
-                // 4. إرسال المعاملة الفعلية لتسجيل التوقع بدون إرسال ETH ({value})
-                const tx = await contract.placePrediction(id, prediction);
-                alert("جاري إرسال توقعك لكأس العالم إلى شبكة Base...");
-                await tx.wait();
+                // 4. إرسال التوقع الفعلي إلى العقد الذكي
+                document.getElementById('status').innerText = "يرجى تأكيد إرسال التوقع في المحفظة...";
+                const predictTx = await contract.placePrediction(id, prediction);
                 
-                alert("🎉 تم تسجيل توقعك بنجاح! بالتوفيق في منافسات SINU Syndicate.");
-            } catch (e) {
-                if (e.code === 4001) {
-                    alert("تم إلغاء العملية بواسطة المستخدم من محفظة MetaMask.");
-                } else {
-                    alert("حدث خطأ تقني: " + e.message);
-                }
+                document.getElementById('status').innerText = "جاري تسجيل توقعك على الشبكة...";
+                await predictTx.wait();
+                
+                document.getElementById('status').innerText = "تم تسجيل التوقع بنجاح! بالتوفيق 🏆";
+                alert("تم تسجيل توقعك بنجاح للمباراة رقم " + id);
+                
+            } catch (error) {
+                console.error(error);
+                document.getElementById('status').innerText = "فشلت المعاملة.";
+                alert("حدث خطأ أثناء التوقع: " + (error.data?.message || error.message));
             }
         }
     </script>
