@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>SINU Syndicate - منصة التوقعات</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .match-card { background: #1e293b; padding: 20px; margin: 15px 0; border-radius: 12px; border: 1px solid #334155; }
+        button { background: #eab308; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; margin: 5px; }
+        button:disabled { background: #475569; cursor: not-allowed; }
+        #status { color: #38bdf8; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SINU Syndicate</h1>
+        <button id="connectBtn">ربط المحفظة</button>
+        <p id="status"></p>
+        <div id="matchesContainer"></div>
+    </div>
+
+    <script>
+        const contractAddress = "0x03bf8EA6170e6A275014200980e20eA20205273F";
+        // الصق الـ ABI الخاص بك هنا بين الأقواس
+        const abi = [ /* ضع الـ ABI هنا */ ];
+
+        // جدول المباريات (يمكنك إضافة البقية بنفس النمط)
+        const matches = [
+            { id: 0, name: "المكسيك ضد جنوب أفريقيا", time: "2026-06-11T20:00:00" },
+            { id: 1, name: "كندا ضد البوسنة والهرسك", time: "2026-06-12T20:00:00" }
+        ];
+
+        let contract;
+
+        document.getElementById('connectBtn').onclick = async () => {
+            if (!window.ethereum) return alert("يرجى تثبيت MetaMask");
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            const signer = provider.getSigner();
+            contract = new ethers.Contract(contractAddress, abi, signer);
+            document.getElementById('status').innerText = "تم ربط المحفظة!";
+            loadMatches();
+        };
+
+        function loadMatches() {
+            const container = document.getElementById('matchesContainer');
+            const now = new Date().getTime();
+            
+            matches.forEach(match => {
+                const startTime = new Date(match.time).getTime();
+                const isLocked = (now + 30 * 60 * 1000) >= startTime;
+                
+                container.innerHTML += `
+                    <div class="match-card">
+                        <h3>${match.name}</h3>
+                        <button ${isLocked ? 'disabled' : ''} onclick="predict(${match.id}, 1)">فوز الفريق 1</button>
+                        <button ${isLocked ? 'disabled' : ''} onclick="predict(${match.id}, 2)">تعادل</button>
+                        <button ${isLocked ? 'disabled' : ''} onclick="predict(${match.id}, 3)">فوز الفريق 2</button>
+                        ${isLocked ? '<p style="color:red">تم إغلاق التوقعات</p>' : ''}
+                    </div>
+                `;
+            });
+        }
+
+        async function predict(id, prediction) {
+            try {
+                const fee = await contract.entryFee();
+                const tx = await contract.placePrediction(id, prediction, { value: fee });
+                alert("جاري إرسال التوقع...");
+                await tx.wait();
+                alert("تم تسجيل توقعك بنجاح!");
+            } catch (e) {
+                alert("حدث خطأ: " + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
