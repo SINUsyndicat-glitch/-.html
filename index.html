@@ -2,77 +2,191 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>SINU Syndicate - منصة التوقعات</title>
+    <title>SINU Syndicate - منصة توقعات كأس العالم 2026</title>
     <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; padding: 20px; }
-        .container { max-width: 800px; margin: auto; }
-        .match-card { background: #1e293b; padding: 20px; margin: 15px 0; border-radius: 12px; border: 1px solid #334155; }
-        button { background: #eab308; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; margin: 5px; }
-        button:disabled { background: #475569; cursor: not-allowed; }
-        #status { color: #38bdf8; margin: 10px 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: white; padding: 20px; direction: rtl; }
+        .container { max-width: 800px; margin: auto; text-align: center; }
+        h1 { color: #eab308; margin-bottom: 5px; }
+        .subtitle { color: #94a3b8; margin-bottom: 30px; }
+        .match-card { background: #1e293b; padding: 25px; margin: 20px 0; border-radius: 14px; border: 1px solid #334155; text-align: right; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .match-card h3 { margin-top: 0; color: #f8fafc; font-size: 1.2rem; }
+        .match-meta { color: #64748b; font-size: 0.85rem; margin-bottom: 15px; }
+        .btn-group { display: flex; gap: 10px; justify-content: flex-start; flex-wrap: wrap; }
+        button { background: #eab308; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #0f172a; transition: all 0.2s; }
+        button:hover { background: #facc15; transform: translateY(-1px); }
+        button:disabled { background: #334155; color: #64748b; cursor: not-allowed; transform: none; }
+        .connect-btn { background: #2563eb; color: white; padding: 12px 24px; font-size: 1rem; border-radius: 8px; margin-bottom: 20px; }
+        .connect-btn:hover { background: #3b82f6; }
+        #status { color: #38bdf8; font-weight: bold; margin: 15px 0; }
+        .fee-info { background: #1e293b; border: 1px dashed #38bdf8; padding: 10px; border-radius: 8px; display: inline-block; margin-bottom: 20px; color: #38bdf8; font-size: 0.95rem; }
+        .locked-text { color: #ef4444; font-weight: bold; margin-top: 10px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>SINU Syndicate</h1>
-        <button id="connectBtn">ربط المحفظة</button>
-        <p id="status"></p>
+        <h1>SINU Syndicate 🏆</h1>
+        <p class="subtitle">منصة توقعات كأس العالم 2026 الرسمية باستخدام عملة SINU</p>
+        
+        <button id="connectBtn" class="connect-btn">ربط محفظة MetaMask</button>
+        <p id="status">الرجاء ربط محفظتك للبدء بالتوقع</p>
+        
+        <div id="feeContainer" style="display: none;">
+            <div class="fee-info">رسوم التوقع للمباراة الواحدة: <span id="feeAmount">--</span> SINU</div>
+        </div>
+        
         <div id="matchesContainer"></div>
     </div>
 
     <script>
-        const contractAddress = "0x03bf8EA6170e6A275014200980e20eA20205273F";
-        // الصق الـ ABI الخاص بك هنا بين الأقواس
-        const abi = [ /* ضع الـ ABI هنا */ ];
+        // 1. عناوين العقود الذكية على شبكة Base
+        const contractAddress = "0x03bf8EA6170e6A275014200980e20eA20205273F"; // عقد التوقعات
+        const sinuTokenAddress = "0x0000000000000000000000000000000000000000"; // ⚠️ ضع هنا عنوان عقد عملتك (SINU ERC-20 Token)
 
-        // جدول المباريات (يمكنك إضافة البقية بنفس النمط)
+        // 2. الـ ABIs لتطبيقات الـ Web3 للتعامل مع العملة وعقد التوقعات
+        const predictionAbi = [
+            "function entryFee() public view returns (uint256)",
+            "function placePrediction(uint256 matchId, uint8 prediction) public"
+        ];
+
+        const erc20Abi = [
+            "function allowance(address owner, address spender) public view returns (uint256)",
+            "function approve(address spender, uint256 amount) public returns (bool)",
+            "function decimals() public view returns (uint8)"
+        ];
+
+        // جدول المباريات
         const matches = [
-            { id: 0, name: "المكسيك ضد جنوب أفريقيا", time: "2026-06-11T20:00:00" },
-            { id: 1, name: "كندا ضد البوسنة والهرسك", time: "2026-06-12T20:00:00" }
+            { id: 0, name: "المكسيك 🇲🇽 ضد جنوب أفريقيا 🇿🇦", time: "2026-06-11T20:00:00" },
+            { id: 1, name: "كندا 🇨🇦 ضد البوسنة والهرسك 🇧🇦", time: "2026-06-12T20:00:00" }
         ];
 
         let contract;
+        let sinuContract;
+        let userAddress;
+        let tokenDecimals = 18; // القيمة الافتراضية لأغلب العملات
 
         document.getElementById('connectBtn').onclick = async () => {
-            if (!window.ethereum) return alert("يرجى تثبيت MetaMask");
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            const signer = provider.getSigner();
-            contract = new ethers.Contract(contractAddress, abi, signer);
-            document.getElementById('status').innerText = "تم ربط المحفظة!";
-            loadMatches();
+            if (!window.ethereum) return alert("يرجى تثبيت MetaMask أولاً!");
+            
+            try {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                // طلب الاتصال بالمحفظة
+                await provider.send("eth_requestAccounts", []);
+                const signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+                
+                // إعداد العقود برمجياً
+                contract = new ethers.Contract(contractAddress, predictionAbi, signer);
+                sinuContract = new ethers.Contract(sinuTokenAddress, erc20Abi, signer);
+                
+                // جلب الـ Decimals الخاصة بعملتك لتنسيق الأرقام بدقة
+                try {
+                    tokenDecimals = await sinuContract.decimals();
+                } catch(e) {
+                    console.log("لم يتم تحديد decimals، تم استخدام القيمة الافتراضية 18");
+                }
+
+                document.getElementById('status').innerText = `متصل بالمحفظة: ${userAddress.substring(0,6)}...${userAddress.substring(38)}`;
+                document.getElementById('connectBtn').style.display = 'none';
+                
+                // جلب وعرض قيمة رسوم الاشتراك (Entry Fee)
+                displayEntryFee();
+                
+                // تحميل وعرض المباريات للمستخدم
+                loadMatches();
+                
+            } catch (error) {
+                alert("فشل الاتصال بالمحفظة: " + error.message);
+            }
         };
+
+        async function displayEntryFee() {
+            try {
+                const feeBigNum = await contract.entryFee();
+                // تحويل الرقم من صيغة العقد الذكي إلى رقم عشري مفهوم للمستخدم
+                const formattedFee = ethers.utils.formatUnits(feeBigNum, tokenDecimals);
+                document.getElementById('feeAmount').innerText = formattedFee;
+                document.getElementById('feeContainer').style.display = 'block';
+            } catch (e) {
+                console.error("خطأ أثناء جلب قيمة الرسوم:", e);
+            }
+        }
 
         function loadMatches() {
             const container = document.getElementById('matchesContainer');
+            container.innerHTML = ""; // تصفير لتفادي تكرار الواجهة عند إعادة الاتصال
+            
             const now = new Date().getTime();
             
             matches.forEach(match => {
                 const startTime = new Date(match.time).getTime();
+                // قفل التوقعات تلقائياً قبل انطلاق المباراة بـ 30 دقيقة لحماية النزاهة
                 const isLocked = (now + 30 * 60 * 1000) >= startTime;
                 
-                container.innerHTML += `
-                    <div class="match-card">
-                        <h3>${match.name}</h3>
-                        <button ${isLocked ? 'disabled' : ''} onclick="predict(${match.id}, 1)">فوز الفريق 1</button>
-                        <button ${isLocked ? 'disabled' : ''} onclick="predict(${match.id}, 2)">تعادل</button>
-                        <button ${isLocked ? 'disabled' : ''} onclick="predict(${match.id}, 3)">فوز الفريق 2</button>
-                        ${isLocked ? '<p style="color:red">تم إغلاق التوقعات</p>' : ''}
+                const formattedTime = new Date(match.time).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' });
+                
+                const matchCard = document.createElement('div');
+                matchCard.className = 'match-card';
+                
+                matchCard.innerHTML = `
+                    <h3>${match.name}</h3>
+                    <div class="match-meta">موعد المباراة: ${formattedTime}</div>
+                    <div class="btn-group">
+                        <button ${isLocked ? 'disabled' : ''} data-prediction="1">فوز الفريق 1</button>
+                        <button ${isLocked ? 'disabled' : ''} data-prediction="2">تعادل</button>
+                        <button ${isLocked ? 'disabled' : ''} data-prediction="3">فوز الفريق 2</button>
                     </div>
+                    ${isLocked ? '<p class="locked-text">⚠️ انتهى الوقت المحدد، تم إغلاق التوقعات لهذه المباراة.</p>' : ''}
                 `;
+                
+                // تفعيل الأزرار وربط الأحداث بشكل آمن إذا لم تكن المباراة مغلقة
+                if (!isLocked) {
+                    matchCard.querySelectorAll('button').forEach(button => {
+                        button.onclick = () => {
+                            const predictionValue = button.getAttribute('data-prediction');
+                            predict(match.id, predictionValue);
+                        };
+                    });
+                }
+                
+                container.appendChild(matchCard);
             });
         }
 
         async function predict(id, prediction) {
+            if (!contract || !sinuContract) {
+                return alert("الرجاء ربط المحفظة أولاً!");
+            }
+            
             try {
+                // 1. جلب قيمة الرسوم المطلوبة من العقد مباشرة
                 const fee = await contract.entryFee();
-                const tx = await contract.placePrediction(id, prediction, { value: fee });
-                alert("جاري إرسال التوقع...");
+                
+                // 2. التحقق من صلاحية الخصم (Allowance) الحالية لعقد التوقعات
+                const allowed = await sinuContract.allowance(userAddress, contractAddress);
+                
+                // 3. إذا كان العقد غير مخول بسحب عملات SINU، نطلب موافقة (Approve) أولاً
+                if (allowed.lt(fee)) {
+                    alert("خطوة أمان: يرجى تأكيد معاملة الموافقة (Approve) لتسمح للمنصة بخصم عملة SINU من حسابك.");
+                    const approveTx = await sinuContract.approve(contractAddress, fee);
+                    alert("جاري معالجة الموافقة على الشبكة، انتظر لحظات...");
+                    await approveTx.wait();
+                    alert("✅ تمت الموافقة بنجاح! سيتم الآن إرسال التوقع تلقائياً.");
+                }
+                
+                // 4. إرسال المعاملة الفعلية لتسجيل التوقع بدون إرسال ETH ({value})
+                const tx = await contract.placePrediction(id, prediction);
+                alert("جاري إرسال توقعك لكأس العالم إلى شبكة Base...");
                 await tx.wait();
-                alert("تم تسجيل توقعك بنجاح!");
+                
+                alert("🎉 تم تسجيل توقعك بنجاح! بالتوفيق في منافسات SINU Syndicate.");
             } catch (e) {
-                alert("حدث خطأ: " + e.message);
+                if (e.code === 4001) {
+                    alert("تم إلغاء العملية بواسطة المستخدم من محفظة MetaMask.");
+                } else {
+                    alert("حدث خطأ تقني: " + e.message);
+                }
             }
         }
     </script>
