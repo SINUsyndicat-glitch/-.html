@@ -420,7 +420,7 @@
                     alert("خطوة أمان: يرجى أولاً تأكيد معاملة الـ Approve للسماح بخصم قيمة الرسوم المتفق عليها برمجياً.");
                     
                     const approveTx = await sinuContractForWrite.approve(contractAddress, fee, {
-                        gasLimit: ethers.BigNumber.from("70000")
+                        gasLimit: ethers.BigNumber.from("250000")
                     });
                     
                     document.getElementById('status').innerText = "جاري تأكيد معاملة الأمان (Approve)...";
@@ -432,7 +432,7 @@
                 document.getElementById('status').innerText = "يرجى الموافقة وتأكيد المعاملة النهائية في المحفظة...";
                 
                 const predictTx = await contractForWrite.placePrediction(id, predictionNumber, {
-                    gasLimit: ethers.BigNumber.from("150000")
+                    gasLimit: ethers.BigNumber.from("350000")
                 });
                 
                 document.getElementById('status').innerText = "جاري رفع التوقع للبلوكشين...";
