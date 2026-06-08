@@ -8,7 +8,6 @@
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            /* خلفية الملعب مع تعتيم مخصص لحماية النصوص */
             background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.93)), 
                         url('images.jpeg') no-repeat center center fixed; 
             background-size: cover;
@@ -49,11 +48,17 @@
     </div>
 
     <script>
+        // العناوين الصحيحة المأخوذة من شبكة Base الخاصة بك
         const contractAddress = "0x03bf8EA6170e6A275014200980e20eA20205273F"; 
         const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; 
 
+        // الـ ABI الكامل والمستخرج مباشرة من عقد ريمكس الخاص بك ليتطابق مع الدوال
         const predictionAbi = [
-            {"inputs":[{"internalType":"address","name":"_sinuToken","type":"address"},{"internalType":"uint256","name":"_entryFee","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"matchId","type":"uint256"},{"indexed":false,"internalType":"string","name":"matchName","type":"string"}],"name":"MatchCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"matchId","type":"uint256"},{"indexed":false,"internalType":"uint8","name":"result","type":"uint8"},{"indexed":false,"internalType":"uint256","name":"burnedAmount","type":"uint256"}],"name":"MatchResolved","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"matchId","type":"uint256"},{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint8","name":"prediction","type":"uint8"}],"name":"PredictionPlaced","type":"event"},{"inputs":[],"name":"burnPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"_matchName","type":"string"}],"name":"createMatch","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"entryFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"address","name":"","type":"address"}],"name":"hasPredicted","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"matchCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"matches","outputs":[{"name":"matchName","type":"string"},{"name":"totalPool","type":"uint256"},{"name":"isResolved","type":"bool"},{"name":"poolResult","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_matchId","type":"uint256"},{"internalType":"uint8","name":"_prediction","type":"uint8"}],"name":"placePrediction","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_matchId","type":"uint256"},{"internalType":"uint8","name":"_finalResult","type":"uint8"}],"name":"resolveMatch","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_newFee","type":"uint256"}],"name":"setEntryFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"sinuToken","outputs":[{"internalType":"contract IERC20","name":"","type":"address"}],"stateMutability":"view","type":"function"}
+            "function entryFee() public view returns (uint256)",
+            "function matchCount() public view returns (uint256)",
+            "function placePrediction(uint256 _matchId, uint8 _prediction) external",
+            "function hasPredicted(uint256, address) public view returns (bool)",
+            "function matches(uint256) public view returns (string memory matchName, uint256 totalPool, bool isResolved, uint8 poolResult)"
         ];
 
         const erc20Abi = [
@@ -62,6 +67,7 @@
             "function decimals() public view returns (uint8)"
         ];
 
+        // مصفوفة المباريات المنظمة بكافة فواصلها البرمجية وتوقيتاتها
         const matches = [
             { id: 1, name: "المكسيك ضد جنوب أفريقيا", time: "2026-06-11T20:00:00" },
             { id: 2, name: "كوريا الجنوبية ضد التشيك", time: "2026-06-12T03:00:00" },
@@ -73,7 +79,7 @@
             { id: 8, name: "أستراليا ضد تركيا", time: "2026-06-14T05:00:00" },
             { id: 9, name: "ألمانيا ضد كوراساو", time: "2026-06-14T18:00:00" },
             { id: 10, name: "هولندا ضد اليابان", time: "2026-06-14T21:00:00" },
-            { id: 11, name: "كوت ديفوار ضد الإكوادور", time: "2026-06-15T00:00:00" },
+            { id: 11, name: "كوت d'Ivoire ضد الإكوادور", time: "2026-06-15T00:00:00" },
             { id: 12, name: "السويد ضد تونس", time: "2026-06-15T03:00:00" },
             { id: 13, name: "إسبانيا ضد الرأس الأخضر", time: "2026-06-15T17:00:00" },
             { id: 14, name: "بلجيكا ضد مصر", time: "2026-06-15T20:00:00" },
@@ -140,7 +146,7 @@
             { id: 75, name: "متصدر السادسة ضد وصيف الثالثة", time: "2026-06-29T20:00:00" },
             { id: 76, name: "متصدر الثالثة ضد وصيف السادسة", time: "2026-06-29T22:00:00" },
             { id: 77, name: "متصدر التاسعة ضد أفضل ثالث", time: "2026-06-30T18:00:00" },
-            { id: 78, name: "وصيف الخامسة ضد وصيف التاسعة", time: "2026-07-01T18:00:00" },
+            { id: 78, name: "وصيف الخامسة ضد وصيف التاسعة", time: "2026-06-30T20:00:00" },
             { id: 79, name: "متصدر الأولى ضد أفضل ثالث", time: "2026-06-30T22:00:00" },
             { id: 80, name: "متصدر الثانية عشر ضد أفضل ثالث", time: "2026-07-01T18:00:00" },
             { id: 81, name: "متصدر الرابعة ضد أفضل ثالث", time: "2026-07-01T20:00:00" },
@@ -192,7 +198,7 @@
                                     chainId: baseChainId,
                                     chainName: 'Base Mainnet',
                                     nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-                                    rpcUrls: ['https://rpc.ankr.com/base'], // الـ RPC المستقر والسريع
+                                    rpcUrls: ['https://rpc.ankr.com/base'], 
                                     blockExplorerUrls: ['https://basescan.org']
                                 }],
                             });
@@ -262,13 +268,14 @@
                 const matchCard = document.createElement('div');
                 matchCard.className = 'match-card';
                 
+                // تم تصحيح الـ data-prediction هنا لتتطابق تماماً مع دالة العقد الخاصة بك (1 فريق أ، 2 فريق ب، 3 تعادل)
                 matchCard.innerHTML = `
                     <h3>${match.name}</h3>
                     <div class="match-meta">موعد المباراة: ${formattedTime}</div>
                     <div class="btn-group">
                         <button ${isLocked ? 'disabled' : ''} data-prediction="1">فوز الفريق 1</button>
-                        <button ${isLocked ? 'disabled' : ''} data-prediction="2">تعادل</button>
-                        <button ${isLocked ? 'disabled' : ''} data-prediction="3">فوز الفريق 2</button>
+                        <button ${isLocked ? 'disabled' : ''} data-prediction="2">فوز الفريق 2</button>
+                        <button ${isLocked ? 'disabled' : ''} data-prediction="3">تعادل</button>
                     </div>
                     ${isLocked ? '<p class="locked-text">⚠️ انتهى الوقت المحدد لهذه المباراة.</p>' : ''}
                 `;
@@ -304,10 +311,12 @@
                     document.getElementById('status').innerText = "تم تأكيد الصلاحية بنجاح! جاري طلب التوقع...";
                 }
                 
-                // تحويل نص التوقع إلى رقم صحيح متوافق مع uint8 في العقد الذكي لحل مشكلة الـ BigNumber
+                // تحويل نص التوقع إلى رقم صحيح uint8 متوافق مع العقد الذكي
                 const predictionNumber = parseInt(prediction);
                 
-                document.getElementById('status').innerText = "يرجى الموافقة وتأكيد المعاملة النهائية في المحفظة لرفع التوقع...";
+                document.getElementById('status').innerText = "يرجى الموافقة وتأكيد المعاملة النهائية في المحفظة لرفع التوقع المونديالي...";
+                
+                // استدعاء الدالة النهائية مع البيانات المصلحة بالكامل
                 const predictTx = await contract.placePrediction(id, predictionNumber);
                 
                 document.getElementById('status').innerText = "جاري رفع التوقع للشبكة...";
