@@ -50,6 +50,9 @@
     <script>
         const contractAddress = "0x03bf8EA6170e6A275014200980e20eA20205273F"; 
         const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; 
+        
+        // رابط الـ RPC الخاص بك من Alchemy لإجبار المتصفح على استخدامه في القراءة السريعة للبيانات
+        const alchemyRpcUrl = "https://base-mainnet.g.alchemy.com/v2/5568KD8wdKKPZfBs0GWfB";
 
         const predictionAbi = [
             "function entryFee() public view returns (uint256)",
@@ -65,7 +68,6 @@
             "function decimals() public view returns (uint8)"
         ];
 
-        // مصفوفة المباريات المنظمة بكافة تفاصيلها
         const matches = [
             { id: 1, name: "المكسيك ضد جنوب أفريقيا", time: "2026-06-11T20:00:00" },
             { id: 2, name: "كوريا الجنوبية ضد التشيك", time: "2026-06-12T03:00:00" },
@@ -82,7 +84,7 @@
             { id: 13, name: "إسبانيا ضد الرأس الأخضر", time: "2026-06-15T17:00:00" },
             { id: 14, name: "بلجيكا ضد مصر", time: "2026-06-15T20:00:00" },
             { id: 15, name: "السعودية ضد أوروغواي", time: "2026-06-15T23:00:00" },
-            { id: 16, name: "إران ضد نيوزيلندا", time: "2026-06-16T02:00:00" },
+            { id: 16, name: "إيران ضد نيوزيلندا", time: "2026-06-16T02:00:00" },
             { id: 17, name: "فرنسا ضد السنغال", time: "2026-06-16T20:00:00" },
             { id: 18, name: "العراق ضد النرويج", time: "2026-06-16T23:00:00" },
             { id: 19, name: "الأرجنتين ضد الجزائر", time: "2026-06-17T02:00:00" },
@@ -173,8 +175,10 @@
             { id: 104, name: "النهائي الكبير", time: "2026-07-19T20:00:00" }
         ];
 
-        let contract;
-        let sinuContract;
+        let contractForRead;
+        let sinuContractForRead;
+        let contractForWrite;
+        let sinuContractForWrite;
         let userAddress;
         let tokenDecimals = 18;
 
@@ -196,8 +200,7 @@
                                     chainId: baseChainId,
                                     chainName: 'Base Mainnet',
                                     nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-                                    // تم هنا دمج رابط الـ RPC الخاص بك المستخرج من Alchemy بالكامل لضمان استقرار الشبكة
-                                    rpcUrls: ['https://base-mainnet.g.alchemy.com/v2/5568KD8wdKKPZfBs0GWfB'], 
+                                    rpcUrls: [alchemyRpcUrl], 
                                     blockExplorerUrls: ['https://basescan.org']
                                 }],
                             });
@@ -220,16 +223,22 @@
                 const networkOk = await checkAndSwitchNetwork();
                 if (!networkOk) return;
 
-                const provider = new ethers.providers.Web3Provider(window.ethereum);
-                await provider.send("eth_requestAccounts", []);
-                const signer = provider.getSigner();
+                // 1. إنشاء اتصال خاص للقراءة الفورية عبر خادم Alchemy لضمان عدم حدوث الـ 429 نهائياً
+                const readProvider = new ethers.providers.JsonRpcProvider(alchemyRpcUrl);
+                contractForRead = new ethers.Contract(contractAddress, predictionAbi, readProvider);
+                sinuContractForRead = new ethers.Contract(sinuTokenAddress, erc20Abi, readProvider);
+
+                // 2. إنشاء اتصال للمحفظة للتوقيع فقط
+                const walletProvider = new ethers.providers.Web3Provider(window.ethereum);
+                await walletProvider.send("eth_requestAccounts", []);
+                const signer = walletProvider.getSigner();
                 userAddress = await signer.getAddress();
                 
-                contract = new ethers.Contract(contractAddress, predictionAbi, signer);
-                sinuContract = new ethers.Contract(sinuTokenAddress, erc20Abi, signer);
+                contractForWrite = new ethers.Contract(contractAddress, predictionAbi, signer);
+                sinuContractForWrite = new ethers.Contract(sinuTokenAddress, erc20Abi, signer);
                 
                 try {
-                    tokenDecimals = await sinuContract.decimals();
+                    tokenDecimals = await sinuContractForRead.decimals();
                 } catch(e) {}
 
                 document.getElementById('status').innerText = `متصل: ${userAddress.substring(0,6)}...${userAddress.substring(38)}`;
@@ -245,12 +254,12 @@
 
         async function displayEntryFee() {
             try {
-                const feeBigNum = await contract.entryFee();
+                const feeBigNum = await contractForRead.entryFee();
                 const formattedFee = ethers.utils.formatUnits(feeBigNum, tokenDecimals);
                 document.getElementById('feeAmount').innerText = formattedFee;
                 document.getElementById('feeContainer').style.display = 'block';
             } catch (e) {
-                document.getElementById('status').innerText = "خطأ مؤقت في جلب البيانات من الشبكة. يرجى إعادة المحاولة لاحقاً.";
+                document.getElementById('status').innerText = "حدث خطأ غير متوقع أثناء جلب البيانات الأساسية من العقد.";
             }
         }
 
@@ -288,28 +297,18 @@
         }
 
         async function predict(id, prediction) {
-            if (!contract || !sinuContract) return alert("الرجاء ربط المحفظة أولاً!");
+            if (!contractForWrite || !sinuContractForWrite) return alert("الرجاء ربط المحفظة أولاً!");
             
             try {
-                document.getElementById('status').innerText = "جاري فحص صلاحيات الأمان وعقد العملة...";
+                document.getElementById('status').innerText = "جاري فحص صلاحيات الأمان وعقد العملة عبر Alchemy...";
                 
-                let fee;
-                try {
-                    fee = await contract.entryFee();
-                } catch (e) {
-                    throw new Error("تجاوز مزود الـ RPC الحد المسموح من الطلبات حالياً (429). الرجاء الانتظار دقيقة والإرسال مجدداً.");
-                }
-                
-                let allowed;
-                try {
-                    allowed = await sinuContract.allowance(userAddress, contractAddress);
-                } catch (e) {
-                    throw new Error("فشل فحص الـ Allowance من الشبكة بسبب ضغط الطلبات، يرجى إعادة المحاولة.");
-                }
+                // القراءة الإلزامية تتم الآن عبر Alchemy المستقر والآمن تماماً
+                const fee = await contractForRead.entryFee();
+                const allowed = await sinuContractForRead.allowance(userAddress, contractAddress);
                 
                 if (allowed.lt(fee)) {
                     alert("خطوة أمان: يرجى أولاً تأكيد معاملة الـ Approve للسماح بسحب قيمة الرسوم المتفق عليها برمجياً.");
-                    const approveTx = await sinuContract.approve(contractAddress, fee);
+                    const approveTx = await sinuContractForWrite.approve(contractAddress, fee);
                     document.getElementById('status').innerText = "جاري تأكيد معاملة الأمان (Approve)...";
                     await approveTx.wait();
                     document.getElementById('status').innerText = "تم تأكيد الصلاحية بنجاح! جاري طلب التوقع...";
@@ -318,7 +317,8 @@
                 const predictionNumber = parseInt(prediction);
                 document.getElementById('status').innerText = "يرجى الموافقة وتأكيد المعاملة النهائية في المحفظة لرفع التوقع المونديالي...";
                 
-                const predictTx = await contract.placePrediction(id, predictionNumber);
+                // الإرسال النهائي يذهب للمحفظة للتوقيع والدفع
+                const predictTx = await contractForWrite.placePrediction(id, predictionNumber);
                 
                 document.getElementById('status').innerText = "جاري رفع التوقع للشبكة...";
                 await predictTx.wait();
