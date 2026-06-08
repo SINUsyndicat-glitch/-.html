@@ -35,30 +35,28 @@
         .unactivated-text { color: #94a3b8; font-style: italic; font-size: 0.9rem; }
     </style>
 </head>
-<body>
-    <div class="container">
-    <h1>SINU Syndicate 🏆</h1>
-    <p class="subtitle">منصة توقعات كأس العالم 2026 الرسمية باستخدام عملة SINU</p>
-
-    <div id="main-countdown-container" style="background: rgba(30, 41, 59, 0.9); color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; border: 1px solid #eab308; text-align: center;">
-        <span id="main-countdown">جاري فحص المباريات الجارية...</span>
-    </div>
-
-    <button id="connectBtn" class="connect-btn">ربط محفظة MetaMask</button>
-        
+  <body>
+      
     <div class="container">
         <h1>SINU Syndicate 🏆</h1>
         <p class="subtitle">منصة توقعات كأس العالم 2026 الرسمية باستخدام عملة SINU</p>
-        
+
+        <div id="main-countdown-container" style="background: rgba(30, 41, 59, 0.9); color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; border: 1px solid #eab308; text-align: center;">
+            <span id="main-countdown">جاري فحص المباريات الجارية...</span>
+        </div>
+
         <button id="connectBtn" class="connect-btn">ربط محفظة MetaMask</button>
         <p id="status">الرجاء ربط محفظتك للبدء بالتوقع</p>
-        
+
         <div id="feeContainer" style="display: none;">
-            <div class="fee-info">رسوم التوقع للمباراة الواحدة: <span id="feeAmount">--</span> SINU</div>
+            <div class="fee-info">رسوم التوقع للمباراة الواحدة: <span id="feeAmount">---</span> SINU</div>
         </div>
-        
+
         <div id="matchesContainer"></div>
     </div>
+
+    
+
 
     <script>
         const contractAddress = "0x03bf8EA6170e6A275014200980e20eA20205273F"; 
