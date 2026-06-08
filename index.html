@@ -51,7 +51,7 @@
         const contractAddress = "0x03bf8EA6170e6A275014200980e20eA20205273F"; 
         const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; 
         
-        // رابط الـ RPC الخاص بك من Alchemy لإجبار المتصفح على استخدامه في القراءة السريعة للبيانات
+        // رابط الـ RPC المخصص والمستقر الخاص بك لحل مشكلة الحظر وضغط البيانات
         const alchemyRpcUrl = "https://base-mainnet.g.alchemy.com/v2/5568KD8wdKKPZfBs0GWfB";
 
         const predictionAbi = [
@@ -223,12 +223,12 @@
                 const networkOk = await checkAndSwitchNetwork();
                 if (!networkOk) return;
 
-                // 1. إنشاء اتصال خاص للقراءة الفورية عبر خادم Alchemy لضمان عدم حدوث الـ 429 نهائياً
+                // قراءة البيانات الأساسية باستقرار تام وعبر الرابط الخاص بك
                 const readProvider = new ethers.providers.JsonRpcProvider(alchemyRpcUrl);
                 contractForRead = new ethers.Contract(contractAddress, predictionAbi, readProvider);
                 sinuContractForRead = new ethers.Contract(sinuTokenAddress, erc20Abi, readProvider);
 
-                // 2. إنشاء اتصال للمحفظة للتوقيع فقط
+                // إعداد المحفظة لعمليات الدفع والتوقيع
                 const walletProvider = new ethers.providers.Web3Provider(window.ethereum);
                 await walletProvider.send("eth_requestAccounts", []);
                 const signer = walletProvider.getSigner();
@@ -259,7 +259,7 @@
                 document.getElementById('feeAmount').innerText = formattedFee;
                 document.getElementById('feeContainer').style.display = 'block';
             } catch (e) {
-                document.getElementById('status').innerText = "حدث خطأ غير متوقع أثناء جلب البيانات الأساسية من العقد.";
+                document.getElementById('status').innerText = "حدث خطأ أثناء جلب الرسوم الأساسية من العقد.";
             }
         }
 
@@ -300,27 +300,33 @@
             if (!contractForWrite || !sinuContractForWrite) return alert("الرجاء ربط المحفظة أولاً!");
             
             try {
-                document.getElementById('status').innerText = "جاري فحص صلاحيات الأمان وعقد العملة عبر Alchemy...";
+                document.getElementById('status').innerText = "جاري فحص صلاحيات الأمان وعقد العملة...";
                 
-                // القراءة الإلزامية تتم الآن عبر Alchemy المستقر والآمن تماماً
                 const fee = await contractForRead.entryFee();
                 const allowed = await sinuContractForRead.allowance(userAddress, contractAddress);
                 
                 if (allowed.lt(fee)) {
-                    alert("خطوة أمان: يرجى أولاً تأكيد معاملة الـ Approve للسماح بسحب قيمة الرسوم المتفق عليها برمجياً.");
-                    const approveTx = await sinuContractForWrite.approve(contractAddress, fee);
+                    alert("خطوة أمان: يرجى أولاً تأكيد معاملة الـ Approve للسماح بخصم قيمة الرسوم المتفق عليها برمجياً.");
+                    
+                    // تمرير الـ gasLimit يدوياً لتخطي فحص المحاكاة المزدحم في ميتاماسك على شبكة Base
+                    const approveTx = await sinuContractForWrite.approve(contractAddress, fee, {
+                        gasLimit: ethers.BigNumber.from("70000")
+                    });
+                    
                     document.getElementById('status').innerText = "جاري تأكيد معاملة الأمان (Approve)...";
                     await approveTx.wait();
                     document.getElementById('status').innerText = "تم تأكيد الصلاحية بنجاح! جاري طلب التوقع...";
                 }
                 
                 const predictionNumber = parseInt(prediction);
-                document.getElementById('status').innerText = "يرجى الموافقة وتأكيد المعاملة النهائية في المحفظة لرفع التوقع المونديالي...";
+                document.getElementById('status').innerText = "يرجى الموافقة وتأكيد المعاملة النهائية في المحفظة...";
                 
-                // الإرسال النهائي يذهب للمحفظة للتوقيع والدفع
-                const predictTx = await contractForWrite.placePrediction(id, predictionNumber);
+                // تمرير الـ gasLimit يدوياً لمعاملة التوقع لتفادي انهيار الـ Simulation
+                const predictTx = await contractForWrite.placePrediction(id, predictionNumber, {
+                    gasLimit: ethers.BigNumber.from("120000")
+                });
                 
-                document.getElementById('status').innerText = "جاري رفع التوقع للشبكة...";
+                document.getElementById('status').innerText = "جاري رفع التوقع للبلوكشين...";
                 await predictTx.wait();
                 
                 document.getElementById('status').innerText = "تم تسجيل توقعك بنجاح! بالتوفيق 🏆";
@@ -329,7 +335,14 @@
             } catch (error) {
                 console.error(error);
                 document.getElementById('status').innerText = "فشلت المعاملة.";
-                alert("حدث خطأ أثناء التوقع: " + (error.data?.message || error.message));
+                
+                let errorMsg = error.message;
+                if (error.data && error.data.message) {
+                    errorMsg = error.data.message;
+                } else if (error.reason) {
+                    errorMsg = error.reason;
+                }
+                alert("حدث خطأ أثناء التوقع: " + errorMsg);
             }
         }
     </script>
