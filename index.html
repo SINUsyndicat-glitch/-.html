@@ -37,6 +37,16 @@
 </head>
 <body>
     <div class="container">
+    <h1>SINU Syndicate 🏆</h1>
+    <p class="subtitle">منصة توقعات كأس العالم 2026 الرسمية باستخدام عملة SINU</p>
+
+    <div id="main-countdown-container" style="background: rgba(30, 41, 59, 0.9); color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; border: 1px solid #eab308; text-align: center;">
+        <span id="main-countdown">جاري فحص المباريات الجارية...</span>
+    </div>
+
+    <button id="connectBtn" class="connect-btn">ربط محفظة MetaMask</button>
+        
+    <div class="container">
         <h1>SINU Syndicate 🏆</h1>
         <p class="subtitle">منصة توقعات كأس العالم 2026 الرسمية باستخدام عملة SINU</p>
         
@@ -322,6 +332,48 @@
                 if (isActivatedOnChain && !isLocked) {
                     matchCard.querySelectorAll('.btn-group button').forEach(button => {
                         button.onclick = () => predict(match.id, button.getAttribute('data-prediction'));
+                            // ==========================================
+    // كود العداد الموحد للمباراة القادمة (تمت إضافته هنا)
+    // ==========================================
+    if (window.matchInterval) clearInterval(window.matchInterval); // تنظيف العداد القديم لو أُعيد تحميل الدالة
+
+    window.matchInterval = setInterval(() => {
+        const currentTime = new Date().getTime();
+        
+        // ترتيب المباريات زمنياً لضمان قراءة المباراة الأولى أولاً
+        const sortedMatches = [...matches].sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+
+        // البحث عن أول مباراة لم تبدأ بعد
+        const nextMatch = sortedMatches.find(match => new Date(match.time).getTime() > currentTime);
+
+        const countdownElement = document.getElementById('main-countdown');
+
+        if (!nextMatch) {
+            countdownElement.innerText = "انتهت جميع مباريات البطولة! 🏁";
+            clearInterval(window.matchInterval);
+            return;
+        }
+
+        // حساب الفارق الزمني للمباراة القادمة
+        const matchTime = new Date(nextMatch.time).getTime();
+        const distance = matchTime - currentTime;
+
+        // حساب الساعات والدقائق والثواني
+        const hours = Math.floor(distance / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        // تنسيق الوقت ليظهر دائماً بخانتين (05:09:01)
+        const fHours = String(hours).padStart(2, '0');
+        const fMinutes = String(minutes).padStart(2, '0');
+        const fSeconds = String(seconds).padStart(2, '0');
+
+        // عرض النتيجة بالشكل المطلوب: [اسم المباراة] بقيت 00:00:00
+        countdownElement.innerText = `${nextMatch.name} بقيت ${fHours}:${fMinutes}:${fSeconds}`;
+
+    }, 1000);
+    // ==========================================
+
                     });
                 } else if (!isActivatedOnChain && isUserOwner) {
                     matchCard.querySelector('.admin-btn').onclick = (e) => {
