@@ -310,7 +310,21 @@
                             <button ${isLocked ? 'disabled' : ''} data-prediction="3">تعادل</button>
                         </div>
                     `;
-                } else {
+                 // أضف هذا الجزء بعد إغلاق شرط if (isActivatedOnChain) أو قبل نهاية حلقة الـ forEach
+                    if (isUserOwner) {
+                          actionHtml += `
+                              <div style="margin-top: 15px; padding: 10px; border: 2px dashed #f59e0b; border-radius: 8px;">
+                               <p style="font-size: 11px; color: #f59e0b; margin-bottom: 5px;">مدير المنصة (الإدارة):</p>
+                                 <button onclick="resolveMatch(${match.id}, 1)">✅ فوز 1</button>
+                                    <button onclick="resolveMatch(${match.id}, 2)">✅ فوز 2</button>
+                                       <button onclick="resolveMatch(${match.id}, 3)">✅ تعادل</button>
+                                           </div>
+                                            `;
+                        }
+
+
+
+             } else {
                     // إذا كانت غير مفعلة، نتحقق من محفظة الزائر
                     if (isUserOwner) {
                         actionHtml = `<button class="admin-btn" data-admin-match-id="${match.id}" data-match-name="${match.name}">تفعيل المباراة على الشبكة 🚀 (خاص بالمطور)</button>`;
@@ -459,6 +473,29 @@
     window.addEventListener('DOMContentLoaded', () => {
         loadMatches();
     });       
+        
+// ... أي دوال سابقة موجودة في ملفك ...
+
+// دالة الإدارة (يجب وضعها هنا في النهاية)
+async function resolveMatch(matchId, result) {
+    try {
+        const statusElement = document.getElementById('status');
+        if (statusElement) statusElement.innerText = "جاري التنفيذ على البلوكتشين...";
+        
+        const tx = await contractForWrite.resolveMatch(matchId, result);
+        
+        if (statusElement) statusElement.innerText = "جاري التأكيد، انتظر قليلاً...";
+        await tx.wait(); 
+        
+        alert("تمت العملية بنجاح! تم توزيع الجوائز.");
+        location.reload(); 
+    } catch (error) {
+        console.error(error);
+        alert("خطأ أثناء التنفيذ: " + (error.data?.message || error.message));
+    }
+}
+
+// أغلق الملف هنا  
 
     </script>
 </body>
