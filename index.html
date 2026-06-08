@@ -8,7 +8,7 @@
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            /* دمج لون داكن مع الصورة لعمل تظليل (Overlay) يحمي وضوح النصوص */
+            /* خلفية الملعب مع تعتيم مخصص لحماية النصوص */
             background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.93)), 
                         url('images.jpeg') no-repeat center center fixed; 
             background-size: cover;
@@ -192,7 +192,7 @@
                                     chainId: baseChainId,
                                     chainName: 'Base Mainnet',
                                     nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-                                    rpcUrls: ['https://rpc.ankr.com/base'], // تم تحديث الـ RPC هنا لتفادي الـ 429
+                                    rpcUrls: ['https://rpc.ankr.com/base'], // الـ RPC المستقر والسريع
                                     blockExplorerUrls: ['https://basescan.org']
                                 }],
                             });
@@ -215,8 +215,6 @@
                 const networkOk = await checkAndSwitchNetwork();
                 if (!networkOk) return;
 
-                // استخدام RPC مخصص ومستقر ومحمي من الضغط
-                const customProvider = new ethers.providers.JsonRpcProvider('https://rpc.ankr.com/base');
                 const provider = new ethers.providers.Web3Provider(window.ethereum);
                 await provider.send("eth_requestAccounts", []);
                 const signer = provider.getSigner();
@@ -306,8 +304,11 @@
                     document.getElementById('status').innerText = "تم تأكيد الصلاحية بنجاح! جاري طلب التوقع...";
                 }
                 
+                // تحويل نص التوقع إلى رقم صحيح متوافق مع uint8 في العقد الذكي لحل مشكلة الـ BigNumber
+                const predictionNumber = parseInt(prediction);
+                
                 document.getElementById('status').innerText = "يرجى الموافقة وتأكيد المعاملة النهائية في المحفظة لرفع التوقع...";
-                const predictTx = await contract.placePrediction(id, prediction);
+                const predictTx = await contract.placePrediction(id, predictionNumber);
                 
                 document.getElementById('status').innerText = "جاري رفع التوقع للشبكة...";
                 await predictTx.wait();
