@@ -333,9 +333,21 @@
                     matchCard.querySelectorAll('.btn-group button').forEach(button => {
                         button.onclick = () => predict(match.id, button.getAttribute('data-prediction'));
                           });
+
+                    
+                } else if (!isActivatedOnChain && isUserOwner) {
+                    matchCard.querySelector('.admin-btn').onclick = (e) => {
+                        const mName = e.target.getAttribute('data-match-name');
+                        activateMatchOnChain(mName);
+                    };
+                }
+                
+                container.appendChild(matchCard);
+            });
+            
                         
                             // ==========================================
-    // كود العداد الموحد للمباراة القادمة (تمت إضافته هنا)
+     // كود العداد الموحد للمباراة القادمة (تمت إضافته هنا)
     // ==========================================
     if (window.matchInterval) clearInterval(window.matchInterval); // تنظيف العداد القديم لو أُعيد تحميل الدالة
 
@@ -375,17 +387,6 @@
 
     }, 1000);
     // ==========================================
-
-                    
-                } else if (!isActivatedOnChain && isUserOwner) {
-                    matchCard.querySelector('.admin-btn').onclick = (e) => {
-                        const mName = e.target.getAttribute('data-match-name');
-                        activateMatchOnChain(mName);
-                    };
-                }
-                
-                container.appendChild(matchCard);
-            });
         }
 
         // دالة تفعيل المباراة للمطور بضغطة زر دون الحاجة لـ Basescan
