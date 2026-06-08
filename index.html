@@ -332,6 +332,8 @@
                 if (isActivatedOnChain && !isLocked) {
                     matchCard.querySelectorAll('.btn-group button').forEach(button => {
                         button.onclick = () => predict(match.id, button.getAttribute('data-prediction'));
+                          });
+                        
                             // ==========================================
     // كود العداد الموحد للمباراة القادمة (تمت إضافته هنا)
     // ==========================================
@@ -374,7 +376,7 @@
     }, 1000);
     // ==========================================
 
-                    });
+                    
                 } else if (!isActivatedOnChain && isUserOwner) {
                     matchCard.querySelector('.admin-btn').onclick = (e) => {
                         const mName = e.target.getAttribute('data-match-name');
