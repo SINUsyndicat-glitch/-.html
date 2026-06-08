@@ -30,6 +30,9 @@
         #status { color: #38bdf8; font-weight: bold; margin: 15px 0; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
         .fee-info { background: rgba(30, 41, 59, 0.9); border: 1px dashed #38bdf8; padding: 10px; border-radius: 8px; display: inline-block; margin-bottom: 20px; color: #38bdf8; font-size: 0.95rem; }
         .locked-text { color: #ef4444; font-weight: bold; margin-top: 10px; font-size: 0.9rem; }
+        .admin-btn { background: #10b981 !important; color: white !important; margin-top: 10px; }
+        .admin-btn:hover { background: #059669 !important; }
+        .unactivated-text { color: #94a3b8; font-style: italic; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -50,13 +53,13 @@
     <script>
         const contractAddress = "0x03bf8EA6170e6A275014200980e20eA20205273F"; 
         const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; 
-        
-        // رابط الـ RPC المخصص والمستقر الخاص بك لحل مشكلة الحظر وضغط البيانات
         const alchemyRpcUrl = "https://base-mainnet.g.alchemy.com/v2/5568KD8wdKKPZfBs0GWfB";
 
         const predictionAbi = [
+            "function owner() public view returns (address)",
             "function entryFee() public view returns (uint256)",
             "function matchCount() public view returns (uint256)",
+            "function createMatch(string memory _matchName) external",
             "function placePrediction(uint256 _matchId, uint8 _prediction) external",
             "function hasPredicted(uint256, address) public view returns (bool)",
             "function matches(uint256) public view returns (string memory matchName, uint256 totalPool, bool isResolved, uint8 poolResult)"
@@ -68,6 +71,7 @@
             "function decimals() public view returns (uint8)"
         ];
 
+        // قائمة الـ 104 مباراة البرمجية المجدولة لديك
         const matches = [
             { id: 1, name: "المكسيك ضد جنوب أفريقيا", time: "2026-06-11T20:00:00" },
             { id: 2, name: "كوريا الجنوبية ضد التشيك", time: "2026-06-12T03:00:00" },
@@ -180,6 +184,8 @@
         let contractForWrite;
         let sinuContractForWrite;
         let userAddress;
+        let contractOwnerAddress;
+        let currentOnChainMatchCount = 0;
         let tokenDecimals = 18;
 
         async function checkAndSwitchNetwork() {
@@ -223,12 +229,10 @@
                 const networkOk = await checkAndSwitchNetwork();
                 if (!networkOk) return;
 
-                // قراءة البيانات الأساسية باستقرار تام وعبر الرابط الخاص بك
                 const readProvider = new ethers.providers.JsonRpcProvider(alchemyRpcUrl);
                 contractForRead = new ethers.Contract(contractAddress, predictionAbi, readProvider);
                 sinuContractForRead = new ethers.Contract(sinuTokenAddress, erc20Abi, readProvider);
 
-                // إعداد المحفظة لعمليات الدفع والتوقيع
                 const walletProvider = new ethers.providers.Web3Provider(window.ethereum);
                 await walletProvider.send("eth_requestAccounts", []);
                 const signer = walletProvider.getSigner();
@@ -239,7 +243,12 @@
                 
                 try {
                     tokenDecimals = await sinuContractForRead.decimals();
-                } catch(e) {}
+                    contractOwnerAddress = await contractForRead.owner();
+                    const countBigNum = await contractForRead.matchCount();
+                    currentOnChainMatchCount = countBigNum.toNumber();
+                } catch(e) {
+                    console.error("Error fetching setup data:", e);
+                }
 
                 document.getElementById('status').innerText = `متصل: ${userAddress.substring(0,6)}...${userAddress.substring(38)}`;
                 document.getElementById('connectBtn').style.display = 'none';
@@ -268,32 +277,81 @@
             container.innerHTML = "";
             const now = new Date().getTime();
             
+            const isUserOwner = userAddress.toLowerCase() === contractOwnerAddress.toLowerCase();
+
             matches.forEach(match => {
                 const startTime = new Date(match.time).getTime();
                 const isLocked = (now + 30 * 60 * 1000) >= startTime;
+                
+                // فحص هل المباراة منشأة برمجياً داخل العقد أم لا
+                const isActivatedOnChain = match.id <= currentOnChainMatchCount;
+                
                 const formattedTime = new Date(match.time).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' });
                 
                 const matchCard = document.createElement('div');
                 matchCard.className = 'match-card';
                 
+                let actionHtml = "";
+                
+                if (isActivatedOnChain) {
+                    // إذا كانت المباراة مفعلة، تظهر أزرار التوقع العادية
+                    actionHtml = `
+                        <div class="btn-group">
+                            <button ${isLocked ? 'disabled' : ''} data-prediction="1">فوز الفريق 1</button>
+                            <button ${isLocked ? 'disabled' : ''} data-prediction="2">فوز الفريق 2</button>
+                            <button ${isLocked ? 'disabled' : ''} data-prediction="3">تعادل</button>
+                        </div>
+                    `;
+                } else {
+                    // إذا كانت غير مفعلة، نتحقق من محفظة الزائر
+                    if (isUserOwner) {
+                        actionHtml = `<button class="admin-btn" data-admin-match-id="${match.id}" data-match-name="${match.name}">تفعيل المباراة على الشبكة 🚀 (خاص بالمطور)</button>`;
+                    } else {
+                        actionHtml = `<p class="unactivated-text">⏳ هذه المباراة لم يتم فتح التوقع عليها من قبل الإدارة بعد.</p>`;
+                    }
+                }
+                
                 matchCard.innerHTML = `
                     <h3>${match.name}</h3>
                     <div class="match-meta">موعد المباراة: ${formattedTime}</div>
-                    <div class="btn-group">
-                        <button ${isLocked ? 'disabled' : ''} data-prediction="1">فوز الفريق 1</button>
-                        <button ${isLocked ? 'disabled' : ''} data-prediction="2">فوز الفريق 2</button>
-                        <button ${isLocked ? 'disabled' : ''} data-prediction="3">تعادل</button>
-                    </div>
-                    ${isLocked ? '<p class="locked-text">⚠️ انتهى الوقت المحدد لهذه المباراة.</p>' : ''}
+                    ${actionHtml}
+                    ${(isActivatedOnChain && isLocked) ? '<p class="locked-text">⚠️ انتهى الوقت المحدد لهذه المباراة.</p>' : ''}
                 `;
                 
-                if (!isLocked) {
-                    matchCard.querySelectorAll('button').forEach(button => {
+                // ربط الأحداث بالأزرار
+                if (isActivatedOnChain && !isLocked) {
+                    matchCard.querySelectorAll('.btn-group button').forEach(button => {
                         button.onclick = () => predict(match.id, button.getAttribute('data-prediction'));
                     });
+                } else if (!isActivatedOnChain && isUserOwner) {
+                    matchCard.querySelector('.admin-btn').onclick = (e) => {
+                        const mName = e.target.getAttribute('data-match-name');
+                        activateMatchOnChain(mName);
+                    };
                 }
+                
                 container.appendChild(matchCard);
             });
+        }
+
+        // دالة تفعيل المباراة للمطور بضغطة زر دون الحاجة لـ Basescan
+        async function activateMatchOnChain(matchName) {
+            try {
+                document.getElementById('status').innerText = `جاري إرسال طلب تفعيل: ${matchName}...`;
+                const tx = await contractForWrite.createMatch(matchName, {
+                    gasLimit: ethers.BigNumber.from("100000")
+                });
+                document.getElementById('status').innerText = "بانتظار تأكيد الشبكة المعاملة...";
+                await tx.wait();
+                alert(`تم تفعيل مباراة [ ${matchName} ] بنجاح على البلوكشين!`);
+                
+                // تحديث العداد وإعادة تحميل الواجهة
+                const countBigNum = await contractForRead.matchCount();
+                currentOnChainMatchCount = countBigNum.toNumber();
+                loadMatches();
+            } catch(error) {
+                alert("فشل تفعيل المباراة: " + error.message);
+            }
         }
 
         async function predict(id, prediction) {
@@ -308,7 +366,6 @@
                 if (allowed.lt(fee)) {
                     alert("خطوة أمان: يرجى أولاً تأكيد معاملة الـ Approve للسماح بخصم قيمة الرسوم المتفق عليها برمجياً.");
                     
-                    // تمرير الـ gasLimit يدوياً لتخطي فحص المحاكاة المزدحم في ميتاماسك على شبكة Base
                     const approveTx = await sinuContractForWrite.approve(contractAddress, fee, {
                         gasLimit: ethers.BigNumber.from("70000")
                     });
@@ -321,9 +378,8 @@
                 const predictionNumber = parseInt(prediction);
                 document.getElementById('status').innerText = "يرجى الموافقة وتأكيد المعاملة النهائية في المحفظة...";
                 
-                // تمرير الـ gasLimit يدوياً لمعاملة التوقع لتفادي انهيار الـ Simulation
                 const predictTx = await contractForWrite.placePrediction(id, predictionNumber, {
-                    gasLimit: ethers.BigNumber.from("120000")
+                    gasLimit: ethers.BigNumber.from("150000")
                 });
                 
                 document.getElementById('status').innerText = "جاري رفع التوقع للبلوكشين...";
@@ -335,14 +391,13 @@
             } catch (error) {
                 console.error(error);
                 document.getElementById('status').innerText = "فشلت المعاملة.";
-                
-                let errorMsg = error.message;
+                let finalReason = "فشلت المحاكاة (تأكد من وجود رصيد كافٍ من عملة SINU في محفظتك).";
                 if (error.data && error.data.message) {
-                    errorMsg = error.data.message;
+                    finalReason = error.data.message;
                 } else if (error.reason) {
-                    errorMsg = error.reason;
+                    finalReason = error.reason;
                 }
-                alert("حدث خطأ أثناء التوقع: " + errorMsg);
+                alert("سبب الرفض من العقد الذكي:\n" + finalReason);
             }
         }
     </script>
